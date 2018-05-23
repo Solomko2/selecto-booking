@@ -17,7 +17,7 @@ const httpLink = new HttpLink({ uri: 'http://localhost:4000' });
 const root = document.getElementById('root');
 
 if(!(root instanceof Element)) {
-    throw 'Invalif root'
+    throw new Error('Invalid root');
 }
 
 const client = new ApolloClient({
