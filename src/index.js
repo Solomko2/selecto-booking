@@ -1,5 +1,3 @@
-// @flow
-
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
@@ -13,7 +11,7 @@ import { HttpLink } from 'apollo-link-http';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 
 
-const httpLink = new HttpLink({ uri: 'http://localhost:4000' });
+const httpLink = new HttpLink({ uri: 'http://localhost:83/graphql/' });
 const root = document.getElementById('root');
 
 if(!(root instanceof Element)) {
