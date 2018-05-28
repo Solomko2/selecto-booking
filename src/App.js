@@ -1,59 +1,53 @@
 import React, {Component} from 'react';
 import gql from "graphql-tag";
 import {Query, Mutation, Subscription} from 'react-apollo'
-//withApollo, graphql, compose,
 import './App.css';
 
-// function getRandomInt(min, max) {
-//     return (Math.floor(Math.random() * (max - min)) + min).toString();
-// }
 
-const GET_TODOS = gql`
+const GET_CHANELS = gql`
     {
-        viewer {
-            allTodos {
-                edges {
-                    node {
-                        name
-                        id
-                        createdAt,
-                        modifiedAt
-                    }
-                }
+        channels {
+            id,
+            name,
+            messages {
+                id,
+                text
             }
         }
     }
 `;
 
-const GREATE_TODO = gql`
-    mutation newTodo($todo: CreateTodoInput!) {
-        createTodo(input: $todo) {
-            changedEdge {
-                node {
-                    name
-                    id
-                    createdAt,
-                    modifiedAt
-                }
+const GET_CHANEL = gql`
+    query getChanel($id: ID!) {
+        channel(id: $id) {
+            id
+            name
+            messages {
+                id
+                text
             }
         }
     }
 `;
 
-const SUBSCRIPTION_GREATE_TODO = gql`
-    subscription subsTodo($event: [TodoMutationEvent]!) {
-        subscribeToTodo(mutations: $event) {
-            edge {
-                node {
-                    name,
-                    id,
-                    createdAt
-                }
-            }
+const ADD_MESSAGE = gql`
+    mutation setMessage($message:  MessageInput!) {
+        addMessage(message: $message) {
+            id,
+            text
+        }
+    }
+
+`;
+
+const SUBSCRIPTION = gql`
+    subscription messageWasAdded($chanelId: ID!) {
+        messageAdded(channelId: $chanelId) {
+            id,
+            text
         }
     }
 `;
-
 
 class App extends Component {
 
@@ -64,39 +58,46 @@ class App extends Component {
     render() {
         return (
             <div className="App">
-                <Subscription subscription={SUBSCRIPTION_GREATE_TODO} variables={{event: ["createTodo"]}}>
-                    {({ data, loading }) => {
-                        return (
-                            <h4>New comment: {!loading}</h4>
-                        )
-                    }}
-                </Subscription>
-                <Mutation
-                    mutation={GREATE_TODO}
-                    update={(cache, {data}) => {
-                        const todosQuery = cache.readQuery({query: GET_TODOS});
-                        const edges = todosQuery.viewer.allTodos.edges;
+                <div>
+                    <Query query={GET_CHANEL} variables={{id: "1"}}>
+                        {({ loading, error, data, subscribeToMore }) => {
+                            if (loading) return "Loading...";
+                            if (error) return `Error! ${error.message}`;
+                            const messages = data.channel.messages;
+                            subscribeToMore({
+                                document: SUBSCRIPTION,
+                                variables: { chanelId: "1" },
+                                updateQuery: (prev, { subscriptionData }) => {
+                                    if (!subscriptionData.data) return prev;
+                                    const newMessageItem = subscriptionData.data.messageAdded;
+                                    console.log(prev.channel.messages, newMessageItem);
+                                    return Object.assign({}, prev, {
+                                        channel: {
+                                            messages: [newMessageItem, ...prev.channel.messages]
+                                        }
+                                    });
+                                }
+                            });
 
-                        const newTodos = data.createTodo.changedEdge;
+                            return (
+                                <ul>
+                                    {messages.map(message => (
+                                        <li key={message.id}>{message.text}</li>
+                                    ))}
+                                </ul>
+                            );
+                        }}
+                    </Query>
 
-                        const newData = Object.assign({}, todosQuery);
-
-                        newData.viewer.allTodos.edges = [newTodos, ...edges];
-
-                        cache.writeQuery({
-                            query: GET_TODOS,
-                            data: newData
-                        });
-                    }}>
-                    {(newTodo, {data}) => {
-                        let input;
-                        return (
+                    <Mutation mutation={ADD_MESSAGE}>
+                        {(setMessage, { data }) => {
+                            let input;
+                            return (
                             <div>
                                 <form
-                                    className={'form'}
                                     onSubmit={e => {
                                         e.preventDefault();
-                                        newTodo({variables: {todo: {name: input.value}}});
+                                        setMessage({ variables: { message: {channelId: "1", text: input.value} } });
                                         input.value = "";
                                     }}
                                 >
@@ -105,29 +106,24 @@ class App extends Component {
                                             input = node;
                                         }}
                                     />
-                                    <button type="submit">Add Todo</button>
+                                    <button type="submit">Add Message</button>
                                 </form>
                             </div>
-                        )
-                    }}
-                </Mutation>
-                <Query query={GET_TODOS}>
-                    {({loading, error, data, subscribeToMore}) => {
-                        if (loading) return "Loading...";
-                        if (error) return `Error! ${error.message}`;
-                        return (
-                            <ul>
+                        )}}
+                    </Mutation>
 
-                                {data.viewer.allTodos.edges.map(({node}) => (
-                                    <li key={node.id}>
-                                        <span>Id: {node.id} </span>
-                                        <span>Name: {node.name}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        );
-                    }}
-                </Query>
+                    {/*<Subscription*/}
+                        {/*subscription={SUBSCRIPTION}*/}
+                        {/*variables={{ chanelId: "1" }}>*/}
+                        {/*{({ data, loading }) => {*/}
+                            {/*console.log(data, loading);*/}
+                            {/*return (*/}
+                                {/*<h4>New comment</h4>*/}
+                            {/*)*/}
+                        {/*}}*/}
+                    {/*</Subscription>*/}
+
+                </div>
             </div>
         );
     }
