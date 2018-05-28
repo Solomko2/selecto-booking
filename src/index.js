@@ -1,5 +1,3 @@
-// @flow
-
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
@@ -8,27 +6,44 @@ import registerServiceWorker from './registerServiceWorker';
 
 
 import { ApolloProvider } from 'react-apollo';
-import { ApolloClient } from 'apollo-client';
-import { HttpLink } from 'apollo-link-http';
-import { InMemoryCache } from 'apollo-cache-inmemory';
+import makeApolloClient from "./utilities/makeApolloClient";
+
+// import { HttpLink } from 'apollo-link-http';
+// import { InMemoryCache } from 'apollo-cache-inmemory';
+
+// import { WebSocketLink } from 'apollo-link-ws';
+// import { getMainDefinition } from 'apollo-utilities';
+// import { split } from 'apollo-link';
+
+// const wsLink = new WebSocketLink({
+//     uri: `wss://us-west-2.api.scaphold.io/graphql/api2018`,
+//     options: {
+//         reconnect: true
+//     }
+// });
+
+// const httpLink = new HttpLink({ uri: 'https://us-west-2.api.scaphold.io/graphql/api2018' });
+// const link = split(
+//     // split based on operation type
+//     ({ query }) => {
+//         const { kind, operation } = getMainDefinition(query);
+//         return kind === 'OperationDefinition' && operation === 'subscription';
+//     },
+//     wsLink,
+//     httpLink,
+// );
 
 
-const httpLink = new HttpLink({ uri: 'http://localhost:4000' });
-const root = document.getElementById('root');
-
-if(!(root instanceof Element)) {
-    throw new Error('Invalid root');
-}
-
-const client = new ApolloClient({
-    link: httpLink,
-    cache: new InMemoryCache()
-});
-
+// const client = new ApolloClient({
+//     link: httpLink,
+//     cache: new InMemoryCache()
+// });
+const client = makeApolloClient("us-west-2.api.scaphold.io/graphql/api2018");
 ReactDOM.render(
   <ApolloProvider client={client}>
     <App />
   </ApolloProvider>
-  , root
+  , document.getElementById('root')
 );
+
 registerServiceWorker();
