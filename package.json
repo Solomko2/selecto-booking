@@ -7,14 +7,16 @@
     "@zeit/next-css": "^0.2.0",
     "@zeit/next-sass": "^0.2.0",
     "@zeit/next-typescript": "^1.0.1",
+    "babel-plugin-css-modules-transform": "^1.6.1",
+    "css-loader": "^0.28.11",
     "express": "^4.16.3",
     "next": "^6.0.3",
     "next-routes": "^1.4.2",
     "node-sass": "^4.9.0",
     "react": "^16.4.0",
-    "react-dom": "^16.4.0"
+    "react-dom": "^16.4.0",
+    "sass-loader": "^7.0.2"
   },
-  "devDependencies": {},
   "scripts": {
     "dev": "node ./server/server.js",
     "build": "next build",
